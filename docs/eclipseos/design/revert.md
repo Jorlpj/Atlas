@@ -10,6 +10,14 @@ The map pages document other actions with limited or absent paired restoration. 
 
 The lab comparison did not exercise a complete rollback, restore point, package repair, or recovery-media workflow. Its Store and Xbox observations therefore say nothing about how reliably any recovery method reverses EclipseOS changes. ([lab comparison](../lab/comparison.md); [lab method](../lab/method.md))
 
+## Research comparison and limits
+
+The checked playbook sources describe different recovery approaches: UltraOS documents a backup, restore point and HTML report; ReviOS uses an upgrade revert; and Chamber describes snapshot, verification and restore steps. The comparison recommends these as design references, but does not establish that they recover every action or survive a failed update. ([26H2 playbook survey](../research/26h2-playbooks.md); [APBX comparison](../research/apbx-comparison.md); `docs/eclipseos/research/apbx-comparison.md:81`)
+
+The text audit for NOVA 1.0.1 found no automatic backup or checkpoint instructions and found that its configuration disables System Restore. This is a source-level observation, not a test of recovery behavior. Separately, the Atlas Store-repair history shows why an opaque repair tool cannot stand in for a documented undo: the source changed to silently invoking `StoreFixer.exe`, whose implementation is not visible in the audited playbook text. ([NOVA verification](../research/apbx/verify-2.md); `docs/eclipseos/research/apbx/verify-2.md:35`; [problem catalog B04](../research/problem-catalog.md); `docs/eclipseos/research/problem-catalog.md:32`)
+
+These comparisons support explicit checkpoint, receipt and action-level restore requirements. They do not prove that a restore point reverses removed packages, that an upgrade revert restores prior user values, or that a repair utility returns Store servicing to a healthy state. EclipseOS must test those outcomes on its own supported builds and action set before describing recovery as complete.
+
 ## Proposed EclipseOS default
 
 1. **Describe recovery per action.** Before applying a setting, record its identifier, target, prior state where it can be read safely, new state, condition, and an explicit recovery method. Mark actions as directly reversible, recoverable through a supported Windows repair path, or requiring reset/reinstall. Do not label an action reversible just because its configuration has a separate script.
@@ -24,4 +32,3 @@ The lab comparison did not exercise a complete rollback, restore point, package 
 Capturing prior state and maintaining per-action recovery adds implementation, storage, and test work. Some removals may remain reset/reinstall-only, so the interface must show that limitation before applying them. A broad snapshot can aid recovery but does not replace targeted verification of Windows servicing, Store, Xbox, or security state.
 
 Acceptance requires a recovery matrix for every supported action and build, a clear user-visible recovery path before changes, and recorded results from rollback and reboot checks. No profile is described as fully reversible until all its actions have passed those checks. Keep the Windows servicing and Store readiness gate in the [install method](install-method.md); rollback tests must include the Store/Xbox checks defined by the [Store and Xbox design](store-appx-xbox.md).
-
