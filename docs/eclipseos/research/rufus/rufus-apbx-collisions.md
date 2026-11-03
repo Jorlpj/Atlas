@@ -1,6 +1,6 @@
 # Rufus 26H2 install x 16 playbooks: collision analysis
 
-Date 2026-11-03. Static reading only; nothing was run. Baseline: Rufus USB, Windows 11 26H2 (build 26300), local account "User" (assumed empty password, UNVERIFIED), BitLocker auto-encryption off, privacy pages skipped, QoL options (Copilot/OneDrive/Outlook/Fast Startup; exact Rufus semantics UNVERIFIED), TPM 2.0 + Secure Boot kept, then full WU + Store with reboot, then the playbook post-install (not ISO injection).
+Date 2026-11-03. Static reading only; nothing was run. Baseline: Rufus USB, Windows 11 26H2 (build 26300), local account "User" (Rufus source specifies an empty password and a change-at-first-logon flag; the prompt outcome is unverified), BitLocker auto-encryption off, privacy pages skipped, QoL enabled (exact writes documented in [rufus-wue.md](rufus-wue.md); 26H2 runtime effects are unverified), TPM 2.0 + Secure Boot kept, then full WU + Store with reboot, then the playbook post-install (not ISO injection).
 Abbreviations: M = `C:\Atlas.librarian\docs\eclipseos\research\apbx-matrix.md`; GA/GB/GC = `...\research\apbx\group-a.md`, `group-b.md`, `group-c.md`; PC = `...\research\problem-catalog.md` (section G, lab IDs). "(inf)" = inference, not source-verified. Atlas source = `C:\Atlas\src\playbook`.
 
 ## 0. Facts that frame everything
@@ -17,7 +17,7 @@ Sev: B blocker, H high, M medium, L low, I info.
 
 | Playbook | Install works? | Requirement issues | Duplicates with Rufus | Conflicts with Rufus | Breaks baseline goals | Sev |
 |---|---|---|---|---|---|---|
-| AtlasOS 0.5.0 | Yes (G01/G10 PC), but 26300 not in SupportedBuilds | DefenderToggled (G03/G13 PC); UCPDDisabled; builds (F2) | Fast Startup, hibernation, Copilot, Outlook, OneDrive (F4) harmless | Reverting power toggles restores Fast Startup/hibernation that Rufus set off (inf, `script-power.yml:15-29`) | VBS/HVCI off by default (PC G11); auto-updates off, Store AutoDownload=2 (M:17-18); Tamper left off (PC G03) | H |
+| AtlasOS 0.5.0 | Yes (G01/G10 PC), but 26300 not in SupportedBuilds | DefenderToggled (G03/G13 PC); UCPDDisabled; builds (F2) | Fast Startup, hibernation, Copilot, Outlook, OneDrive (F4) harmless | Reverting power toggles restores Fast Startup/hibernation that Rufus set off (inf, `src/playbook/Configuration/tweaks/scripts/script-power.yml:15-29`) | VBS/HVCI off by default (PC G11); auto-updates off, Store AutoDownload=2 (M:17-18); Tamper left off (PC G03) | H |
 | ReviOS 26.10 | Yes in principle (lists 26300, M:15) | DefenderToggled; Tamper off beforehand (M:66) | Telemetry=0, hibernate off | Defender off by default (M:65) | Defender off, VBS off no option, WU paused to 2038 (M:17,65,69) | H |
 | Chamber 1.3.3 | Yes (26300 declared, M:15) | NoPendingUpdates, NoAntivirus (GA:77); no DefenderToggled | Telemetry policies | None found | WSearch/SysMain off, hosts blocks (M:103,106); CC BY-NC-SA license | M |
 | UltraOS 1.2.1 | Yes (26300 primary, M:15) | Internet, NoPendingUpdates, PluggedIn only (M:66) | Fast Startup off in Safe+ (M:107) | None | SAC disabled in default Balanced (M:67) | M |
@@ -58,8 +58,7 @@ Sev: B blocker, H high, M medium, L low, I info.
 - S8 (E9/E10): write idempotent tweaks, make reverts restore only what EclipseOS itself changed (snapshot/restore as Chamber, M:144); omit the ISO block (F1).
 
 ## Not verified
-- Rufus: exact registry/unattend effect of each option, empty password for "User", whether QoL disables or merely does not force Fast Startup/Copilot/OneDrive/Outlook.
-- AME behaviour on unsupported builds in the GUI, meaning of `FreshInstall`, handling of a passwordless account (F6).
-- SynergyOS tag 1.7 requirements and builds (M:31 "?"); AME 11 0.8.3 (no tag, M:209); GC:203 requirement set (Internet, DefenderToggled, NoAntivirus, FreshInstall) assumed to be Z-LAG-OS, header not re-checked.
-- KT-TWEAKS-only playbooks (Atom etc.) are not in the 16-column matrix.
+- Rufus source specifies the empty password and QoL writes, but the empty-password first-logon prompt outcome and 26H2 runtime effects of the options remain unverified; see [rufus-wue.md](rufus-wue.md).
+- AME behaviour on unsupported builds in the GUI and whether its Wizard accepts an already passwordless local user remain unverified; the `FreshInstall` definition is verified in [verify-1.md](verify-1.md).
+- The KT-TWEAKS-only playbooks (Atom etc.) are not in the 16-column matrix.
 - Whether any revert actually undoes Rufus-set values (inferred from revert design, M:144-171).
