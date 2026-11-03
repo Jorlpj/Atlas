@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "builds": [
+    { "build": 26300, "architectures": ["amd64"] }
+  ]
+}
