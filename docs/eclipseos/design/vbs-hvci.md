@@ -1,0 +1,34 @@
+# VBS, Memory Integrity and kernel protections
+
+**Status: proposed.** Keep Windows virtualization-based security (VBS) and Memory Integrity (HVCI) on by default wherever the hardware and drivers support them. Keep TPM 2.0 and Secure Boot enabled as installation constraints ([EclipseOS constraints](../README.md)). Make an opt-out an explicit, visible choice with a compatibility warning; do not apply a UEFI lock. Leave Windows exploit mitigations at their defaults.
+
+## What these settings mean
+
+VBS uses the Windows hypervisor to isolate security services. Memory Integrity, also called HVCI, is one VBS service: it moves kernel code-integrity checks into that isolated environment. Kernel-mode Hardware-enforced Stack Protection and Credential Guard are separate VBS-backed services, not synonyms for HVCI. Microsoft says Memory Integrity is enabled by default on clean Windows 11 installs on compatible hardware; older processors may incur a larger performance impact, and incompatible drivers or applications can fail or, rarely, cause a boot failure. Windows Security and the `Win32_DeviceGuard` interface expose configured and running state, which should be captured separately during validation. ([Microsoft: default enablement](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-hvci-enablement); [Microsoft: enable and validate Memory Integrity](https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity); [Microsoft: driver compatibility](https://learn.microsoft.com/en-us/windows-hardware/test/hlk/testref/driver-compatibility-with-device-guard))
+
+## Atlas behavior at the inspected source
+
+Atlas exposes `disable-core-isolation` as a setup checkbox. The script group calls `ConfigVBS.ps1 -DisableAllVBS` only when that option is selected; in the EclipseOS lane A full-GUI-default run it was selected. The wrapper sets HVCI `Enabled=0`, and if the relevant keys exist it also disables Kernel-mode Hardware-enforced Stack Protection and Credential Guard; it sets LSA protection (`RunAsPPL`) and general VBS (`EnableVirtualizationBasedSecurity`) to zero. (`src/playbook/playbook.conf:109-115`; `src/playbook/Configuration/tweaks/scripts/script-core-isolation.yml:1-9`; `src/playbook/Executables/AtlasModules/Scripts/ScriptWrappers/ConfigVBS.ps1:13-38`; [lane A](../lab/lane-a.md))
+
+This option runs in the script sequence after the other tweak groups. The lane's A0v checkpoint had VBS and HVCI running; after the full GUI defaults, A1f reported VBS off and HVCI off. The ISO-injection lane also reported both off. These observations verify the settings changed in those lab runs; the lanes did not compare game performance with VBS on and off. (`src/playbook/Configuration/tweaks.yml:328-340`; [lab comparison](../lab/comparison.md); [catalog](../research/problem-catalog.md))
+
+Atlas also includes manual controls. Its `Enable VBS.cmd` sets HVCI `Enabled=1` and `EnableVirtualizationBasedSecurity=1`, while `Disable VBS.cmd` sets both to zero. The `ConfigVBS.ps1 -EnableMemoryIntegrity` path sets HVCI `Enabled=1` and `WasEnabledBy=2`. Neither route restores all the other values changed by `-DisableAllVBS`; the upgrade-time `revert.yml` has no VBS or HVCI restoration action. Do not describe either control as a complete rollback. (`src/playbook/Executables/AtlasDesktop/7. Security/Core Isolation (VBS)/Enable VBS.cmd:19-30`; `src/playbook/Executables/AtlasDesktop/7. Security/Core Isolation (VBS)/Disable VBS.cmd:19-30`; `src/playbook/Executables/AtlasModules/Scripts/ScriptWrappers/ConfigVBS.ps1:13-43`; `src/playbook/Configuration/atlas/revert.yml:1-36`)
+
+## Compatibility and performance evidence
+
+Riot says Vanguard may require Memory Integrity (HVCI/VBS) for some Windows security checks. FACEIT says it requires VBS to support IOMMU reliably and is rolling the combined requirements out to player groups. Keeping these protections on by default improves the chance that supported anti-cheat checks pass, but it does not guarantee compatibility: hardware, firmware, drivers and each anti-cheat's current policy still matter. ([Riot Vanguard security requirements](https://support.riotgames.com/en-us/riot/performance/vanguard-security-requirements); [FACEIT Windows security requirements](https://support.faceit.com/hc/en-us/articles/23117181142556-Windows-Security-Requirements-FAQ))
+
+The Microsoft and FACEIT guidance acknowledges compatibility and performance trade-offs, especially with older processors, drivers or firmware. It does not establish a general FPS penalty or gain. The current EclipseOS lanes have VBS/HVCI off in their post-playbook checkpoints and contain no matched gaming benchmark, so any performance benefit from disabling them remains unmeasured. Keep protection on as the default and measure game frametimes, CPU/GPU behavior, driver compatibility and anti-cheat checks on matched hardware before proposing an opt-out for performance reasons.
+
+In the inspected playbook survey, ReviOS disables VBS/HVCI by default, while Chamber and UltraOS offer it as an option. Those are source-survey observations, not evidence that the choices improve game performance or satisfy every anti-cheat. ([26H2 playbook survey](../research/26h2-playbooks.md); [raw comparison notes](../research/apbx/group-a.md))
+
+## Proposed EclipseOS behavior and acceptance checks
+
+- Preserve Windows' hardware-qualified default enablement; on supported systems, explicitly configure VBS and HVCI on without a UEFI lock. Do not force unsupported hardware into a state it cannot run.
+- Keep Kernel-mode Hardware-enforced Stack Protection and Credential Guard at Windows defaults, and avoid coupling them to an HVCI opt-out. Show each feature's actual configured and running state in diagnostics.
+- Make any opt-out user-initiated, reversible and clear about driver compatibility, security loss, and possible Vanguard or FACEIT requirements. Report when firmware or policy prevents the requested state change.
+- Keep TPM 2.0, Secure Boot and Windows exploit mitigations on. Do not claim that VBS/HVCI alone satisfies an anti-cheat requirement.
+- Validate clean install, in-place update, reboot recovery and a representative driver set on supported and unsupported hardware. Record `VirtualizationBasedSecurityStatus`, `SecurityServicesConfigured`, and `SecurityServicesRunning` from `Win32_DeviceGuard`, plus Windows Security status and Code Integrity compatibility events.
+- Compare game frametimes and system resource use with matched hardware, builds, drivers and game settings before making a performance claim; repeat relevant anti-cheat checks with the default profile.
+
+This profile prioritizes security and anti-cheat readiness. Its trade-off is possible compatibility or performance cost on older systems or with incompatible drivers; the default remains reversible and does not lock the user out of firmware recovery.
