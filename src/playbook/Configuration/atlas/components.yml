@@ -3,16 +3,8 @@ title: Components
 description: Removes certain Windows components
 onUpgrade: false
 actions:
-    # Remove Security Center startup item
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run', value: 'SecurityHealth', operation: delete}
-
-    # Disable Smart App Control
-    # Causes slow app loading issues and sends data to Microsoft
-  - !registryValue:
-    path: 'HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy'
-    value: 'VerifiedAndReputablePolicyState'
-    data: '0'
-    type: REG_DWORD
+    # EclipseOS: the Windows Security tray (SecurityHealth Run value) and Smart App Control
+    # stay at Windows defaults; turning Smart App Control off cannot be undone without a reinstall
 
     # Microsoft Edge
   - !writeStatus: {status: 'Removing Microsoft Edge', option: 'uninstall-edge'}
@@ -35,27 +27,12 @@ actions:
 
     # Windows components and Telemetry
   - !writeStatus: {status: 'Removing components'}
-  - !registryKey:
-    path: 'HKLM\OfflineSys\ControlSet001\Services\WdBoot'
-    operation: delete
-    option: 'defender-disable'
-    iso: only
-  - !powerShell:
-    command: >-
-      & """$([Environment]::GetFolderPath('Windows'))\AtlasModules\Scripts\packageInstall.ps1"""
-      -InstallPackages @('*Z-Atlas-NoDefender-Package*',
-        '*Z-Atlas-NoTelemetry-Package*'
-      )
-      -NoInteraction
-    option: 'defender-disable'
-    wait: true
-    exeDir: true
+    # EclipseOS: Defender always stays installed; the NoDefender package is never installed
   - !powerShell:
     command: >-
       & """$([Environment]::GetFolderPath('Windows'))\AtlasModules\Scripts\packageInstall.ps1"""
       -InstallPackages @('*Z-Atlas-NoTelemetry-Package*')
       -UninstallPackages @('*Z-Atlas-NoDefender-Package*')
       -NoInteraction
-    option: 'defender-enable'
     wait: true
     exeDir: true

@@ -9,6 +9,14 @@ actions:
     wait: true
     runas: currentUserElevated
     option: 'auto-updates-disable'
+    # EclipseOS: automatic updates are the default; Defaults (DEFAULT.ps1) runs every
+    # '(default).cmd' in the Atlas folder, so undo its AUOptions value when updates stay automatic
+  - !cmd:
+    command: '"AtlasDesktop\3. General Configuration\Automatic Updates\Enable Automatic Updates.cmd" /silent'
+    exeDir: true
+    wait: true
+    runas: currentUserElevated
+    option: 'auto-updates-default'
 
     # Prevent DevHome & Outlook from re-installing
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\Orchestrator\UScheduler_Oobe\DevHomeUpdate'}

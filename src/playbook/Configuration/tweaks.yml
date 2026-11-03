@@ -152,7 +152,6 @@ actions:
   - !task: {path: 'tweaks\qol\disable-mouse-accel.yml'}
   - !task: {path: 'tweaks\qol\disable-settings-tips.yml'}
   - !task: {path: 'tweaks\qol\disable-spell-checking.yml'}
-  - !task: {path: 'tweaks\qol\disable-store-auto-updates.yml'}
   - !task: {path: 'tweaks\qol\disable-touch-keyboard-features.yml'}
   - !task: {path: 'tweaks\qol\disable-touch-visual-feedback.yml'}
   - !task: {path: 'tweaks\qol\disable-usb-issues-notifications.yml'}
@@ -182,7 +181,6 @@ actions:
   - !task: {path: 'tweaks\qol\windows-update\disable-nagging.yml'}
   - !task: {path: 'tweaks\qol\windows-update\disable-insider.yml'}
   - !task: {path: 'tweaks\qol\windows-update\disable-msrt-telemetry.yml'}
-  - !task: {path: 'tweaks\qol\windows-update\disable-feature-updates.yml'}
   - !task: {path: 'tweaks\qol\windows-update\disable-auto-updates.yml'}
   - !task: {path: 'tweaks\qol\windows-update\disable-auto-reboot.yml'}
   - !task: {path: 'tweaks\qol\windows-update\disable-delivery-optimization.yml'}
