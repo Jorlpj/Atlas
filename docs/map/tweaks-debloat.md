@@ -1,0 +1,19 @@
+# Debloat tweaks
+
+The debloat section of `Configuration/tweaks.yml` runs five tasks in sequence: content-delivery settings, reserved-storage disablement, scheduled-task disablement, Windows Security page hiding, and Storage Sense configuration. The group has no visible build, edition, or architecture guard at the call site. (`src/playbook/Configuration/tweaks.yml:311-324`)
+
+## Actions
+
+| Task | Effects and conditions |
+| --- | --- |
+| `config-content-delivery.yml` | Writes per-user `ContentDeliveryManager` values to disable content delivery, suggested app installs, several suggested-content surfaces, tips and welcome content; also disables account notifications in Settings. The source leaves two registry-key removals commented out because it says they could impair re-enabling content. These are direct HKCU value writes; no condition is shown in the task. (`src/playbook/Configuration/tweaks/debloat/config-content-delivery.yml:3-4`, `:5-31`, `:35-63`, `:66-78`, `:82-164`) |
+| `disable-reserved-storage.yml` | Runs `DISM.exe /Online /Set-ReservedStorageState /State:Disabled`, with `ignoreErrors: true`; its description explicitly ties the change to freeing space for Windows Updates. This directly affects update reserved storage. (`src/playbook/Configuration/tweaks/debloat/disable-reserved-storage.yml:2-5`) |
+| `disable-scheduled-tasks.yml` | Disables the Program Compatibility Assistant patch database task, the `UCPD velocity` task under AppxDeploymentClient, Disk Diagnostic data collection, CEIP Consolidator and UsbCeip, plus Usage Data Reporting. Each task operation ignores errors. It also deletes `CriticalMaintenance_UsageDataReporting` from `HKLM\System\CurrentControlSet\Control\Ubpm`. The AppxDeploymentClient task name makes this an AppX-servicing-sensitive change to review; the file itself does not establish downstream servicing effects. (`src/playbook/Configuration/tweaks/debloat/disable-scheduled-tasks.yml:2-23`) |
+| `hide-unused-security-pages.yml` | Sets `UILockdown=1` under Windows Defender Security Center policy keys for Family options, Device performance and health, and Account protection. The description says this hides those UI pages. (`src/playbook/Configuration/tweaks/debloat/hide-unused-security-pages.yml:2-17`) |
+| `config-storage-sense.yml` | Enables Storage Sense and monthly execution, sets its cadence to 30 days, enables temporary-file cleanup, leaves Downloads, OneDrive and Recycle Bin cleanup disabled, and enables the SilentCleanup scheduled task. The file does not specify a build or account condition. (`src/playbook/Configuration/tweaks/debloat/config-storage-sense.yml:2-25`) |
+
+## Servicing and revert notes
+
+The reserved-storage command explicitly targets space reserved for Windows Updates. The scheduled-task list also disables `\Microsoft\Windows\AppxDeploymentClient\UCPD velocity`; this is a named AppX deployment task, but no further effect on Store, Xbox, or AppX installs is described in this source. No task in this group directly removes Store or Xbox packages. (`src/playbook/Configuration/tweaks/debloat/disable-reserved-storage.yml:2-5`, `src/playbook/Configuration/tweaks/debloat/disable-scheduled-tasks.yml:8-10`)
+
+The upgrade-time `revert.yml` contains Explorer folder registry cleanup only; it has no matching reversal for these debloat registry values, the DISM reserved-storage state, or the scheduled-task operations. The debloat files themselves likewise contain no inverse actions. (`src/playbook/Configuration/atlas/revert.yml:1-36`, `src/playbook/Configuration/tweaks/debloat/config-content-delivery.yml:1-166`, `src/playbook/Configuration/tweaks/debloat/config-storage-sense.yml:1-27`, `src/playbook/Configuration/tweaks/debloat/disable-reserved-storage.yml:1-5`, `src/playbook/Configuration/tweaks/debloat/disable-scheduled-tasks.yml:1-23`, `src/playbook/Configuration/tweaks/debloat/hide-unused-security-pages.yml:1-17`)
