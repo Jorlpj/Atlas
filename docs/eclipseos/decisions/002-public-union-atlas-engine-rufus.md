@@ -1,6 +1,6 @@
 # ADR-002: EclipseOS is one public repository built from Atlas, the open AME engine and Rufus's answer-file logic
 
-Status: accepted for the direction (maintainer, 2026-11-03); the component choices below are proposed until the
+Status: accepted for the direction (maintainer, 2026-11-03); decisions 2 and 4 superseded by ADR-003. The component choices below are proposed until the
 cards land. Author: orchestrator.
 
 ## Context
